@@ -46,13 +46,13 @@ void triggerAction() {
 void departAction() {
     PORTB &= ~_BV(DETECT_LED_PIN); // Turn off LED to indicate lack of object presence
     armed = 0;
-    if (serialOn) serial_write_string("Byebye!\n");
+    if (serialOn) serial_write_string("unarmed\n");
 }
 
 void arriveAction() {
     PORTB |= _BV(DETECT_LED_PIN); // Turn on LED to indicate object presence
     armed = 1;
-    if (serialOn) serial_write_string("Hewwo!\n");
+    if (serialOn) serial_write_string("armed!\n");
 }
 
 ISR(TIMER0_OVF_vect) {
