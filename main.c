@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include "serial.h"
 
 #include <stdio.h>
 
@@ -9,13 +10,16 @@
 
 #define DETECT_LED_PIN PORTB2 // Arduino pin 10,  ATmega328P Port B pin 2
 #define ECHO_LED_PIN  PORTB3 // Arduino pin 11,  ATmega328P Port B pin 3
+#define SERIAL_LED_PIN PORTB4 // Arduino pin 12,  ATmega328P Port B pin 4
 
 #define POT_PIN PINC5 // Arduino pin A5,  ATmega328P Port C pin 5
+
+#define SERIAL_BUTTON_PIN PIND4 // Arduino pin 4,   ATmega328P Port D pin 4
 
 #define MIC_A_PIN PINC4 // Arduino pin A4,  ATmega328P Port C pin 4
 #define MIC_D_PIN PORTD3 // Arduino pin 3,   ATmega328P Port D pin 3
 
-#define CLOCK_FREQ 16000000 // 16MHz clock frequency
+#define BAUD 9600 // Baud rate for serial communication
 #define V_SOUND 0.0343 // Speed of sound in cm/us
 #define MAX_TIME1 65535 // Max value of TCCR1B register
 #define ABSENT_TIME 500 // Time to wait before declaring object absent
@@ -26,26 +30,29 @@ int p_count;
 int presentCount = 0;
 _Bool present = 0;
 _Bool armed = 0;
+_Bool serialOn = 0;
 
-void trigger() {
-    // Blink LED to indicate trigger
+void triggerAction() {
+    // Blink LED to indicate triggerAction
     for (int i = 0; i < 10; i++) {
         _delay_ms(100);
-        PORTB |= _BV(DETECT_LED_PIN);
-        _delay_ms(100);
         PORTB &= ~_BV(DETECT_LED_PIN);
+        _delay_ms(100);
+        PORTB |= _BV(DETECT_LED_PIN);
     }
-
+    if (serialOn) serial_write_string("ACTION: Toggle lamp\n");
 }
 
 void departAction() {
     PORTB &= ~_BV(DETECT_LED_PIN); // Turn off LED to indicate lack of object presence
     armed = 0;
+    if (serialOn) serial_write_string("Byebye!\n");
 }
 
 void arriveAction() {
     PORTB |= _BV(DETECT_LED_PIN); // Turn on LED to indicate object presence
     armed = 1;
+    if (serialOn) serial_write_string("Hewwo!\n");
 }
 
 ISR(TIMER0_OVF_vect) {
@@ -66,14 +73,17 @@ int main (void) {
     DDRB |= _BV(DDB1); // Trigger pin
     DDRB |= _BV(DDB2); // Detect LED pin
     DDRB |= _BV(DDB3); // Echo LED pin
+    DDRB |= _BV(DDB4); // Serial LED pin
     /* Set input pins */
     DDRB &= ~_BV(ECHO_PIN); // Echo pin
     DDRC &= ~_BV(POT_PIN); // Potentiometer pin
-    DDRD &= ~_BV(MIC_D_PIN); // Microphone digital pin)
+    DDRD &= ~_BV(MIC_D_PIN); // Microphone digital pin
+    DDRD &= ~_BV(SERIAL_BUTTON_PIN); // Serial button pin
     /* Set pullup on input pins */
     PORTB |= _BV(PORTB0); // Echo pin
     /* Set down on input pins */
     PORTD &= ~_BV(PORTD3); // Microphone digital pin
+    PORTD &= ~_BV(PORTD4); // Serial button pin
 
     /* Analog Setup */
     // Configure ADC to be left justified, use AVCC as reference, and select ADC0 as ADC input
@@ -92,9 +102,28 @@ int main (void) {
     p_count = 0;
 
     while(1) {
+        /* Check if serial button is pressed */
+        if (PIND & _BV(SERIAL_BUTTON_PIN)) {
+            if (!serialOn) {
+                PORTB |= _BV(SERIAL_LED_PIN);
+                serialOn = 1;
+                serial_init((unsigned short)(CLOCK_FREQ / 16 / BAUD - 1));
+            } else {
+                PORTB &= ~_BV(SERIAL_LED_PIN);
+                serialOn = 0;
+                serial_stop();
+            }
+            _delay_ms(100);
+        }
+        /* Make sure serial LED is on if serial is on and off if serial is off */
+        if (serialOn && !(PORTB & _BV(SERIAL_LED_PIN))) {
+            PORTB |= _BV(SERIAL_LED_PIN);
+        } else if (!serialOn && (PORTB & _BV(SERIAL_LED_PIN))) {
+            PORTB &= ~_BV(SERIAL_LED_PIN);
+        }
         /* Check if microphone is triggered whilst armed*/
         if (PIND & _BV(MIC_D_PIN) && armed) {
-            trigger();
+            triggerAction();
         }
         /* Read potentiometer value */
         ADMUX |= _BV(MUX2) | _BV(MUX0); // Select ADC5 as ADC input
@@ -106,7 +135,7 @@ int main (void) {
         double presentCountMultiplierNormalized = (double)presentCountMultiplier / 255.0;
         /* Set present count */
         presentCount = (int)(PRESENT_BASE * presentCountMultiplierNormalized);
-        /* Send a 10us pulse on the trigger pin */
+        /* Send a 10us pulse on the triggerAction pin */
         PORTB |= _BV(TRIG_PIN);
         _delay_us(10);
         PORTB &= ~_BV(TRIG_PIN);
