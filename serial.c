@@ -1,6 +1,5 @@
 #include "serial.h"
 #include <stdlib.h>
-#include <util/delay.h>
 
 void serial_init (unsigned short ubrr) {
     /* Set baud rate */
