@@ -1,3 +1,6 @@
+[![C](https://img.shields.io/badge/gcc-avr--gcc%205.4-informational.svg)](https://gcc.gnu.org)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1-informational.svg)](https://docs.microsoft.com/en-us/powershell)
+[![Bash](https://img.shields.io/badge/Shell-Bash-informational.svg)](https://www.gnu.org/software/bash)
 # Smart-Trigger
 ## An embedded trigger for the [IKEA-IoT-Interface](https://github.com/danielshifman/IKEA-IoT-Interface)
 
