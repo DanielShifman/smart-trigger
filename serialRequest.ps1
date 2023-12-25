@@ -11,7 +11,7 @@ function read-serial {
             # get the action from format "ACTION: action\n"
             $action = $data.Split(":")[1].Trim()
             if ($action -eq "Toggle lamp") {
-                # run the smartHub.exe with the arguements
+                # run the smartHub.exe with the arguments
                 Write-Host "TOGGLING LAMP..."
                 & $pathToExe $toggleLampArgs
             }
