@@ -56,3 +56,5 @@ If you use different ports, you will need to change the values in the `#define` 
 ### Customisation
 In the current state, the device only toggles the "isOn" attribute of the device "Desk Lamp".
 Other actions may be written. Feel free to customise to your needs.
+
+**Don't forget to tune the microphone sensitivity with the potentiometer on the microphone module.**
