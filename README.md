@@ -32,7 +32,7 @@ If you use different ports, you will need to change the values in the `#define` 
 - After connecting the board to your computer, make a note of the serial port it is connected to
   - On Linux, this will be something like `/dev/ttyACMx`
   - On Windows, this will be something like `COMx`
-  - On Mac, this will be something like `/dev/tty.usbmodemxxxx`
+  - On Mac, this will be something like `/dev/cu.usbmodemxxxx`
 - Set the `PORT` variable to this value, then run `make install` in the project directory
 - If you wish to set a different clock speed, change the `F_CPU` variable in the Makefile and the `CLOCK_FREQ` variable in the `serial.h` file
   - The default is 16MHz
@@ -42,4 +42,14 @@ If you use different ports, you will need to change the values in the `#define` 
 - Connect the board to your computer
 - Run the appropriate script for your OS to listen for serial input (set the script variables before running)
     - `serialRequest.ps1` on Windows
-    - `serialRequest.sh` on Linux and Mac (will be added soon)
+    - `serialRequest.sh` on Linux and Mac
+- Press the momentary switch to enable serial communication (on is indicated by the yellow LED)
+- Arm and trigger the device as desired
+  - Ex.1: Hold out your hand to arm, then snap your fingers to trigger
+  - Ex.2: Position yourself in front of the device to arm, then clap to trigger
+  - Ex.3: Get your head close to arm, then "blow out the light" to trigger
+  - Be creative!
+
+### Customisation
+In the current state, the device only toggles the "isOn" attribute of the device "Desk Lamp".
+Other actions may be written. Feel free to customise to your needs.
